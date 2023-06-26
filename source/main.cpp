@@ -13,12 +13,14 @@ public:
 		auto rootFrame = new tsl::elm::OverlayFrame("", "");
 
 		auto Status = new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
-				static uint8_t avg = 0;
-				if (FPSavg >= 100) avg = 46;
-				else if (FPSavg >= 10) avg = 23;
-				else avg = 0;
-				renderer->drawRect(0, base_y, tsl::cfg::FramebufferWidth - 370 + avg, 50, a(0x7111));
-				renderer->drawString(FPSavg_c, false, 5, base_y+40, 40, renderer->a(0xFFFF));
+				static uint8_t pad = 0;
+				if (FPSavg >= 100) pad = 34;
+				else if (FPSavg >= 10) pad = 22;
+				else pad = 6;
+
+				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth - 415 + pad, 27, a(0x7111));
+				tsl::gfx::Color fontColor = { 0x00, 0xFF, 0x00, 0xFF };
+				renderer->drawString(FPSavg_c, false, 3, 22, 22, fontColor);
 		});
 
 		rootFrame->setContent(Status);
@@ -49,7 +51,7 @@ public:
 	}
 };
 
-//FPS Counter mode
+//FPS Graph mode
 class com_FPSGraph : public tsl::Gui {
 public:
     com_FPSGraph() { }
@@ -135,7 +137,6 @@ public:
 				y_old = y;
 				last_element--;
 			}
-
 		});
 
 		rootFrame->setContent(Status);
@@ -429,45 +430,51 @@ public:
 		auto Status = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
 			
 			if (!GameRunning) {
-				uint32_t size = 18;
-				uint32_t offset1 = 0;
-				uint32_t offset2 = offset1 + 355;
-				uint32_t offset3 = offset2 + 210;
-				uint32_t offset4 = offset3 + 275;
-				uint32_t offset5 = offset4 + 320;
-				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 22, a(0x7111));
+				uint32_t size = 12;
+				uint32_t offset1 = 2;
+				uint32_t offset2 = offset1 + 115;
+				uint32_t offset3 = offset2 + 118;
+				uint32_t offset4 = offset3 + 124;
+				uint32_t offset5 = offset4 + 87;
+				uint32_t offset6 = offset5 + 736;
+				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 18, a(0x7111));
 				renderer->drawString("CPU", false, offset1, size, size, renderer->a(0xFCCF));
 				renderer->drawString("GPU", false, offset2, size, size, renderer->a(0xFCCF));
 				renderer->drawString("RAM", false, offset3, size, size, renderer->a(0xFCCF));
-				renderer->drawString("BRD", false, offset4, size, size, renderer->a(0xFCCF));
+				renderer->drawString("TEMP", false, offset4, size, size, renderer->a(0xFCCF));
 				renderer->drawString("FAN", false, offset5, size, size, renderer->a(0xFCCF));
-				renderer->drawString(CPU_compressed_c, false, offset1+42, size, size, renderer->a(0xFFFF));
-				renderer->drawString(GPU_Load_c, false, offset2+45, size, size, renderer->a(0xFFFF));
-				renderer->drawString(RAM_var_compressed_c, false, offset3+47, size, size, renderer->a(0xFFFF));
-				renderer->drawString(skin_temperature_c, false, offset4+45, size, size, renderer->a(0xFFFF));
-				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+43, size, size, renderer->a(0xFFFF));
+				renderer->drawString(CPU_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(GPU_Load_c, false, offset2+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(skin_temperature_c, false, offset4+33, size, size, renderer->a(0xFFFF));
+				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
+				tsl::gfx::Color fontColor = { 0x00, 0xFF, 0x00, 0xFF };
+				renderer->drawString(Battery_c, false, offset6, size, size, fontColor);
 			}
 			else {
-				uint32_t size = 18;
-				uint32_t offset1 = 0;
-				uint32_t offset2 = offset1 + 355;
-				uint32_t offset3 = offset2 + 200;
-				uint32_t offset4 = offset3 + 265;
-				uint32_t offset5 = offset4 + 245;
-				uint32_t offset6 = offset5 + 130;
-				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 22, a(0x7111));
+				uint32_t size = 12;
+				uint32_t offset1 = 2;
+				uint32_t offset2 = offset1 + 115;
+				uint32_t offset3 = offset2 + 118;
+				uint32_t offset4 = offset3 + 124;
+				uint32_t offset5 = offset4 + 87;
+				uint32_t offset6 = offset5 + 87;
+				uint32_t offset7 = offset5 + 736;
+				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 18, a(0x7111));
 				renderer->drawString("CPU", false, offset1, size, size, renderer->a(0xFCCF));
 				renderer->drawString("GPU", false, offset2, size, size, renderer->a(0xFCCF));
 				renderer->drawString("RAM", false, offset3, size, size, renderer->a(0xFCCF));
-				renderer->drawString("BRD", false, offset4, size, size, renderer->a(0xFCCF));
+				renderer->drawString("TEMP", false, offset4, size, size, renderer->a(0xFCCF));
 				renderer->drawString("FAN", false, offset5, size, size, renderer->a(0xFCCF));
 				renderer->drawString("FPS", false, offset6, size, size, renderer->a(0xFCCF));
-				renderer->drawString(CPU_compressed_c, false, offset1+42, size, size, renderer->a(0xFFFF));
-				renderer->drawString(GPU_Load_c, false, offset2+45, size, size, renderer->a(0xFFFF));
-				renderer->drawString(RAM_var_compressed_c, false, offset3+47, size, size, renderer->a(0xFFFF));
-				renderer->drawString(skin_temperature_c, false, offset4+45, size, size, renderer->a(0xFFFF));
-				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+43, size, size, renderer->a(0xFFFF));
-				renderer->drawString(FPS_var_compressed_c, false, offset6+40, size, size, renderer->a(0xFFFF));
+				renderer->drawString(CPU_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(GPU_Load_c, false, offset2+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(skin_temperature_c, false, offset4+33, size, size, renderer->a(0xFFFF));
+				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(FPS_var_compressed_c, false, offset6+30, size, size, renderer->a(0xFFFF));
+				tsl::gfx::Color fontColor = { 0x00, 0xFF, 0x00, 0xFF };
+				renderer->drawString(Battery_c, false, offset7, size, size, fontColor);
 			}
 		});
 
@@ -490,15 +497,28 @@ public:
 		
 		//Make stuff ready to print
 		///CPU
+		double CPU_Usage_Max = 0;
 		double percent = ((double)systemtickfrequency - (double)idletick0) / (double)systemtickfrequency * 100;
-		snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
+		}
 		percent = ((double)systemtickfrequency - (double)idletick1) / (double)systemtickfrequency * 100;
-		snprintf(CPU_Usage1, sizeof CPU_Usage1, "%.0f%s", percent, "%");
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
+		}
 		percent = ((double)systemtickfrequency - (double)idletick2) / (double)systemtickfrequency * 100;
-		snprintf(CPU_Usage2, sizeof CPU_Usage2, "%.0f%s", percent, "%");
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
+		}
 		percent = ((double)systemtickfrequency - (double)idletick3) / (double)systemtickfrequency * 100;
-		snprintf(CPU_Usage3, sizeof CPU_Usage3, "%.0f%s", percent, "%");
-		snprintf(CPU_compressed_c, sizeof CPU_compressed_c, "[%s,%s,%s,%s]@%.1f", CPU_Usage0, CPU_Usage1, CPU_Usage2, CPU_Usage3, (float)CPU_Hz / 1000000);
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
+		}
+		snprintf(CPU_compressed_c, sizeof CPU_compressed_c, "%s@%.1f", CPU_Usage0, (float)CPU_Hz / 1000000);
 		
 		///GPU
 		snprintf(GPU_Load_c, sizeof GPU_Load_c, "%.1f%s@%.1f", (float)GPU_Load_u / 10, "%", (float)GPU_Hz / 1000000);
@@ -514,28 +534,26 @@ public:
 		float RAM_Used_system_f = (float)RAM_Used_system_u / 1024 / 1024;
 		float RAM_Used_systemunsafe_f = (float)RAM_Used_systemunsafe_u / 1024 / 1024;
 		float RAM_Used_all_f = RAM_Used_application_f + RAM_Used_applet_f + RAM_Used_system_f + RAM_Used_systemunsafe_f;
-		snprintf(RAM_all_c, sizeof RAM_all_c, "%.0f/%.0fMB", RAM_Used_all_f, RAM_Total_all_f);
+		percent = (RAM_Used_all_f / RAM_Total_all_f) * 100;
+		snprintf(RAM_all_c, sizeof RAM_all_c, "%.1f%s", percent, "%");
 		snprintf(RAM_var_compressed_c, sizeof RAM_var_compressed_c, "%s@%.1f", RAM_all_c, (float)RAM_Hz / 1000000);
-		
+
 		///Thermal
-		if (GameRunning) {
-			if (hosversionAtLeast(14,0,0)) {
-				snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d/%2d/%2.0f\u00B0C@%+.2fW", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000, PowerConsumption);
-			}
-			else
-				snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.0f/%2.0f/%2.0f\u00B0C@%+.2fW", (float)SOC_temperatureC / 1000, (float)PCB_temperatureC / 1000, (float)skin_temperaturemiliC / 1000, PowerConsumption);
-		}
-		else {
-			if (hosversionAtLeast(14,0,0)) {
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d/%2d/%2.1f\u00B0C@%+.2fW", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000, PowerConsumption);
-			}
-			else
-				snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f/%2.1f/%2.1f\u00B0C@%+.2fW", (float)SOC_temperatureC / 1000, (float)PCB_temperatureC / 1000, (float)skin_temperaturemiliC / 1000, PowerConsumption);
-		}
+		if (hosversionAtLeast(14,0,0))
+			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C/%2d\u00B0C/%2.1f\u00B0C", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000);
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)skin_temperaturemiliC / 1000);
+		else
+			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C/%2.1f\u00B0C/%2.1f\u00B0C", (float)SOC_temperatureC / 1000, (float)PCB_temperatureC / 1000, (float)skin_temperaturemiliC / 1000);
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)skin_temperaturemiliC / 1000);
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.2f%s", Rotation_SpeedLevel_f * 100, "%");
-		
+
 		///FPS
 		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
+
+		///Battery
+		float PowerConsumption = ((batCurrentAvg / 1000) * (batVoltageAvg / 1000));
+		snprintf(Battery_c, sizeof Battery_c, "%.1f%s (%+.2fW)", (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", PowerConsumption);
+		
 
 		//Debug
 		/*
@@ -557,6 +575,86 @@ public:
 			tsl::setNextOverlay(filepath);
 			tsl::Overlay::get()->close();
 			return true;
+		}
+		return false;
+	}
+};
+
+class GamingOverlay : public tsl::Gui {
+public:
+	GamingOverlay() {	}
+
+	s16 base_x = 1200;
+
+    virtual tsl::elm::Element* createUI() override {
+		auto rootFrame = new tsl::elm::OverlayFrame("", "");
+
+		auto Status = new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
+				tsl::gfx::Color colorGreen = { 0x00, 0xFF, 0x00, 0xFF };
+				tsl::gfx::Color colorPink = { 0xFF, 0xAA, 0xCF, 0xFF };
+				tsl::gfx::Color colorSky = { 0xC0, 0xDB, 0xEA, 0xFF };
+				renderer->drawString("FPS:", false, base_x, 12, 12, renderer->a(0xFFFF));
+				renderer->drawString("CPU:", false, base_x, 24, 12, renderer->a(0xFFFF));
+				renderer->drawString("GPU:", false, base_x, 36, 12, renderer->a(0xFFFF));
+				renderer->drawString(FPS_var_compressed_c, false, base_x+36, 12, 12, colorGreen);
+				renderer->drawString(CPU_compressed_c, false, base_x+36, 24, 12, colorPink);
+				renderer->drawString(GPU_Load_c, false, base_x+36, 36, 12, colorSky);
+		});
+
+		rootFrame->setContent(Status);
+
+		return rootFrame;
+	}
+
+	virtual void update() override {
+		if (TeslaFPS == 60) {
+			TeslaFPS = 1;
+			tsl::hlp::requestForeground(false);
+		}
+		//CPU
+		double CPU_Usage_Max = 0;
+		double percent = ((double)systemtickfrequency - (double)idletick0) / (double)systemtickfrequency * 100;
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.1f%s", percent, "%");
+		}
+		percent = ((double)systemtickfrequency - (double)idletick1) / (double)systemtickfrequency * 100;
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.1f%s", percent, "%");
+		}
+		percent = ((double)systemtickfrequency - (double)idletick2) / (double)systemtickfrequency * 100;
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.1f%s", percent, "%");
+		}
+		percent = ((double)systemtickfrequency - (double)idletick3) / (double)systemtickfrequency * 100;
+		if (percent > CPU_Usage_Max) {
+			CPU_Usage_Max = percent;
+			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.1f%s", percent, "%");
+		}
+		snprintf(CPU_compressed_c, sizeof CPU_compressed_c, "%s", CPU_Usage0);
+		///GPU
+		snprintf(GPU_Load_c, sizeof GPU_Load_c, "%.1f%s", (float)GPU_Load_u / 10, "%");
+		///FPS
+		snprintf(FPS_var_compressed_c, sizeof FPSavg_c, "%2.1f", FPSavg);
+		
+	}
+	virtual bool handleInput(uint64_t keysDown, uint64_t keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
+		if ((keysHeld & KEY_LSTICK) && (keysHeld & KEY_RSTICK)) {
+			TeslaFPS = 60;
+			refreshrate = 60;
+			tsl::setNextOverlay(filepath);
+			tsl::Overlay::get()->close();
+			return true;
+		}
+		else if ((keysHeld & KEY_ZR) && (keysHeld & KEY_R)) {
+			if ((keysHeld & KEY_DLEFT) && base_x != 0) {
+				base_x = 0;
+			}
+			else if ((keysHeld & KEY_DRIGHT) && base_x != 1200) {
+				base_x = 1200;
+			}
 		}
 		return false;
 	}
@@ -900,6 +998,16 @@ public:
 				return false;
 			});
 			list->addItem(Micro);
+			auto Gaming = new tsl::elm::ListItem("Gaming");
+			Gaming->setClickListener([](uint64_t keys) {
+				if (keys & KEY_A) {
+					tsl::setNextOverlay(filepath, "--gamingOverlay");
+					tsl::Overlay::get()->close();
+					return true;
+				}
+				return false;
+			});
+			list->addItem(Gaming);
 		}
 		if (SaltySD) {
 			auto comFPS = new tsl::elm::ListItem("FPS Counter");
@@ -1029,6 +1137,7 @@ public:
     }
 };
 
+template <bool isGaming>
 class MicroMode : public tsl::Overlay {
 public:
 
@@ -1086,7 +1195,11 @@ public:
     virtual std::unique_ptr<tsl::Gui> loadInitialGui() override {
 		StartThreads();
 		refreshrate = 1;
-        return initially<MicroOverlay>();  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
+		if (isGaming) {
+			return initially<GamingOverlay>();
+		} else {
+			return initially<MicroOverlay>();  // Initial Gui to load. It's possible to pass arguments to it's constructor like this
+		}
     }
 };
 
@@ -1113,7 +1226,25 @@ int main(int argc, char **argv) {
 					filepath = folderpath + "Status-Monitor-Overlay.ovl";
 				}
 			}
-			return tsl::loop<MicroMode>(argc, argv);
+			return tsl::loop<MicroMode<false>>(argc, argv);
+		} else if (strcasecmp(argv[arg], "--gamingOverlay") == 0) {
+			framebufferWidth = 1280;
+			framebufferHeight = 60;
+			FullMode = false;
+			alphabackground = 0x0;
+			FILE* test = fopen(std::string(folderpath + filename).c_str(), "rb");
+			if (test) {
+				fclose(test);
+				filepath = folderpath + filename;
+			}
+			else {
+				test = fopen(std::string(folderpath + "Status-Monitor-Overlay.ovl").c_str(), "rb");
+				if (test) {
+					fclose(test);
+					filepath = folderpath + "Status-Monitor-Overlay.ovl";
+				}
+			}
+			return tsl::loop<MicroMode<true>>(argc, argv);
 		}
 	}
     return tsl::loop<MonitorOverlay>(argc, argv);
