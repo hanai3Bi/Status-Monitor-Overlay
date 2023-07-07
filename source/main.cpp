@@ -2,6 +2,10 @@
 #include <tesla.hpp>
 #include "Utils.hpp"
 
+const tsl::gfx::Color colorGreen = { 0x00, 0xFF, 0x00, 0xFF };
+const tsl::gfx::Color colorPink  = { 0xFF, 0xAA, 0xCF, 0xFF };
+const tsl::gfx::Color colorSky   = { 0xC0, 0xDB, 0xEA, 0xFF };
+
 //FPS Counter mode
 class com_FPS : public tsl::Gui {
 public:
@@ -432,11 +436,11 @@ public:
 			if (!GameRunning) {
 				uint32_t size = 12;
 				uint32_t offset1 = 2;
-				uint32_t offset2 = offset1 + 115;
-				uint32_t offset3 = offset2 + 118;
-				uint32_t offset4 = offset3 + 124;
-				uint32_t offset5 = offset4 + 87;
-				uint32_t offset6 = offset5 + 736;
+				uint32_t offset2 = offset1 + 130;
+				uint32_t offset3 = offset2 + 130;
+				uint32_t offset4 = offset3 + 130;
+				uint32_t offset5 = offset4 + 82;
+				uint32_t offset6 = 1185;
 				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 18, a(0x7111));
 				renderer->drawString("CPU", false, offset1, size, size, renderer->a(0xFCCF));
 				renderer->drawString("GPU", false, offset2, size, size, renderer->a(0xFCCF));
@@ -448,33 +452,31 @@ public:
 				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(skin_temperature_c, false, offset4+33, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
-				tsl::gfx::Color fontColor = { 0x00, 0xFF, 0x00, 0xFF };
-				renderer->drawString(Battery_c, false, offset6, size, size, fontColor);
+				renderer->drawString(Battery_c, false, offset6, size, size, colorGreen);
 			}
 			else {
 				uint32_t size = 12;
 				uint32_t offset1 = 2;
-				uint32_t offset2 = offset1 + 115;
-				uint32_t offset3 = offset2 + 118;
-				uint32_t offset4 = offset3 + 124;
-				uint32_t offset5 = offset4 + 87;
-				uint32_t offset6 = offset5 + 87;
-				uint32_t offset7 = offset5 + 736;
-				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 18, a(0x7111));
-				renderer->drawString("CPU", false, offset1, size, size, renderer->a(0xFCCF));
-				renderer->drawString("GPU", false, offset2, size, size, renderer->a(0xFCCF));
-				renderer->drawString("RAM", false, offset3, size, size, renderer->a(0xFCCF));
-				renderer->drawString("TEMP", false, offset4, size, size, renderer->a(0xFCCF));
-				renderer->drawString("FAN", false, offset5, size, size, renderer->a(0xFCCF));
-				renderer->drawString("FPS", false, offset6, size, size, renderer->a(0xFCCF));
-				renderer->drawString(CPU_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(GPU_Load_c, false, offset2+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(skin_temperature_c, false, offset4+33, size, size, renderer->a(0xFFFF));
-				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(FPS_var_compressed_c, false, offset6+30, size, size, renderer->a(0xFFFF));
-				tsl::gfx::Color fontColor = { 0x00, 0xFF, 0x00, 0xFF };
-				renderer->drawString(Battery_c, false, offset7, size, size, fontColor);
+				uint32_t offset2 = offset1 + 66;
+				uint32_t offset3 = offset2 + 130;
+				uint32_t offset4 = offset3 + 130;
+				uint32_t offset5 = offset4 + 130;
+				uint32_t offset6 = offset5 + 82;
+				uint32_t offset7 = 1185;
+				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 16, a(0x7111));
+				renderer->drawString("FPS", false, offset1, size, size, renderer->a(0xFCCF));
+				renderer->drawString("CPU", false, offset2, size, size, renderer->a(0xFCCF));
+				renderer->drawString("GPU", false, offset3, size, size, renderer->a(0xFCCF));
+				renderer->drawString("RAM", false, offset4, size, size, renderer->a(0xFCCF));
+				renderer->drawString("TEMP", false, offset5, size, size, renderer->a(0xFCCF));
+				renderer->drawString("FAN", false, offset6, size, size, renderer->a(0xFCCF));
+				renderer->drawString(FPS_var_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(CPU_compressed_c, false, offset2+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(GPU_Load_c, false, offset3+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(RAM_var_compressed_c, false, offset4+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(skin_temperature_c, false, offset5+33, size, size, renderer->a(0xFFFF));
+				renderer->drawString(Rotation_SpeedLevel_c, false, offset6+30, size, size, renderer->a(0xFFFF));
+				renderer->drawString(Battery_c, false, offset7, size, size, colorGreen);
 			}
 		});
 
@@ -501,23 +503,20 @@ public:
 		double percent = ((double)systemtickfrequency - (double)idletick0) / (double)systemtickfrequency * 100;
 		if (percent > CPU_Usage_Max) {
 			CPU_Usage_Max = percent;
-			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
 		}
 		percent = ((double)systemtickfrequency - (double)idletick1) / (double)systemtickfrequency * 100;
 		if (percent > CPU_Usage_Max) {
 			CPU_Usage_Max = percent;
-			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
 		}
 		percent = ((double)systemtickfrequency - (double)idletick2) / (double)systemtickfrequency * 100;
 		if (percent > CPU_Usage_Max) {
 			CPU_Usage_Max = percent;
-			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
 		}
 		percent = ((double)systemtickfrequency - (double)idletick3) / (double)systemtickfrequency * 100;
 		if (percent > CPU_Usage_Max) {
 			CPU_Usage_Max = percent;
-			snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.0f%s", percent, "%");
 		}
+		snprintf(CPU_Usage0, sizeof CPU_Usage0, "%.1f%s", CPU_Usage_Max, "%");
 		snprintf(CPU_compressed_c, sizeof CPU_compressed_c, "%s@%.1f", CPU_Usage0, (float)CPU_Hz / 1000000);
 		
 		///GPU
@@ -541,14 +540,14 @@ public:
 		///Thermal
 		if (hosversionAtLeast(14,0,0))
 			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C/%2d\u00B0C/%2.1f\u00B0C", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000);
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)skin_temperaturemiliC / 1000);
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C", SOC_temperatureC);
 		else
 			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C/%2.1f\u00B0C/%2.1f\u00B0C", (float)SOC_temperatureC / 1000, (float)PCB_temperatureC / 1000, (float)skin_temperaturemiliC / 1000);
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)skin_temperaturemiliC / 1000);
-		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.2f%s", Rotation_SpeedLevel_f * 100, "%");
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)SOC_temperatureC / 1000);
+		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.0f%s", Rotation_SpeedLevel_f * 100, "%");
 
 		///FPS
-		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
+		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.0f", FPSavg);
 
 		///Battery
 		float PowerConsumption = ((batCurrentAvg / 1000) * (batVoltageAvg / 1000));
@@ -590,9 +589,6 @@ public:
 		auto rootFrame = new tsl::elm::OverlayFrame("", "");
 
 		auto Status = new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
-				tsl::gfx::Color colorGreen = { 0x00, 0xFF, 0x00, 0xFF };
-				tsl::gfx::Color colorPink = { 0xFF, 0xAA, 0xCF, 0xFF };
-				tsl::gfx::Color colorSky = { 0xC0, 0xDB, 0xEA, 0xFF };
 				renderer->drawString("FPS:", false, base_x, 12, 12, renderer->a(0xFFFF));
 				renderer->drawString("CPU:", false, base_x, 24, 12, renderer->a(0xFFFF));
 				renderer->drawString("GPU:", false, base_x, 36, 12, renderer->a(0xFFFF));
