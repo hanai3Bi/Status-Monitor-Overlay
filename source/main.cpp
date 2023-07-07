@@ -450,14 +450,14 @@ public:
 				renderer->drawString(CPU_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(GPU_Load_c, false, offset2+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(skin_temperature_c, false, offset4+33, size, size, renderer->a(0xFFFF));
+				renderer->drawString(skin_temperature_c, false, offset4+34, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Battery_c, false, offset6, size, size, colorGreen);
 			}
 			else {
 				uint32_t size = 12;
 				uint32_t offset1 = 2;
-				uint32_t offset2 = offset1 + 66;
+				uint32_t offset2 = offset1 + 72;
 				uint32_t offset3 = offset2 + 130;
 				uint32_t offset4 = offset3 + 130;
 				uint32_t offset5 = offset4 + 130;
@@ -474,7 +474,7 @@ public:
 				renderer->drawString(CPU_compressed_c, false, offset2+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(GPU_Load_c, false, offset3+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(RAM_var_compressed_c, false, offset4+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(skin_temperature_c, false, offset5+33, size, size, renderer->a(0xFFFF));
+				renderer->drawString(skin_temperature_c, false, offset5+34, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Rotation_SpeedLevel_c, false, offset6+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Battery_c, false, offset7, size, size, colorGreen);
 			}
@@ -547,7 +547,7 @@ public:
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.0f%s", Rotation_SpeedLevel_f * 100, "%");
 
 		///FPS
-		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.0f", FPSavg);
+		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
 
 		///Battery
 		float PowerConsumption = ((batCurrentAvg / 1000) * (batVoltageAvg / 1000));
