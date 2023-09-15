@@ -432,6 +432,7 @@ public:
 		auto rootFrame = new tsl::elm::OverlayFrame("", "");
 
 		auto Status = new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, u16 x, u16 y, u16 w, u16 h) {
+			auto battColor = _batteryChargeInfoFields.ChargerType ? colorGreen : renderer->a(0xFFFF);
 			
 			if (!GameRunning) {
 				uint32_t size = 12;
@@ -452,7 +453,7 @@ public:
 				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(skin_temperature_c, false, offset4+34, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Rotation_SpeedLevel_c, false, offset5+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(Battery_c, false, offset6, size, size, colorGreen);
+				renderer->drawString(Battery_c, false, offset6, size, size, battColor);
 			}
 			else {
 				uint32_t size = 12;
@@ -476,7 +477,7 @@ public:
 				renderer->drawString(RAM_var_compressed_c, false, offset4+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(skin_temperature_c, false, offset5+34, size, size, renderer->a(0xFFFF));
 				renderer->drawString(Rotation_SpeedLevel_c, false, offset6+30, size, size, renderer->a(0xFFFF));
-				renderer->drawString(Battery_c, false, offset7, size, size, colorGreen);
+				renderer->drawString(Battery_c, false, offset7, size, size, battColor);
 			}
 		});
 
