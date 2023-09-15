@@ -303,7 +303,9 @@ public:
 		snprintf(RAM_var_compressed_c, sizeof RAM_var_compressed_c, "%s\n%s\n%s\n%s\n%s", RAM_all_c, RAM_application_c, RAM_applet_c, RAM_system_c, RAM_systemunsafe_c);
 		
 		///Thermal
-		snprintf(BatteryDraw_c, sizeof BatteryDraw_c, "Battery Power Flow: %+.2fW", PowerConsumption);
+		char remainingBatteryLife[6];
+		snprintf(remainingBatteryLife, sizeof remainingBatteryLife, "%d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
+		snprintf(BatteryDraw_c, sizeof BatteryDraw_c, "Battery Power Flow: %+.2fW[%s]", PowerConsumption, remainingBatteryLife);
 		if (hosversionAtLeast(14,0,0)) {
 			snprintf(SoCPCB_temperature_c, sizeof SoCPCB_temperature_c, "%2d \u00B0C\n%2d \u00B0C\n%2.2f \u00B0C", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000);
 		}
@@ -395,7 +397,10 @@ public:
 		snprintf(RAM_var_compressed_c, sizeof RAM_var_compressed_c, "%s@%.1f", RAM_all_c, (float)RAM_Hz / 1000000);
 		
 		///Thermal
-		snprintf(SoCPCB_temperature_c, sizeof SoCPCB_temperature_c, "%0.2fW", PowerConsumption);
+		char remainingBatteryLife[6];
+		snprintf(remainingBatteryLife, sizeof remainingBatteryLife, "%d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
+		
+		snprintf(SoCPCB_temperature_c, sizeof SoCPCB_temperature_c, "%0.2fW[%s]", PowerConsumption, remainingBatteryLife);
 		if (hosversionAtLeast(14,0,0))
 			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C/%2d\u00B0C/%2.1f\u00B0C", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000);
 		else
@@ -440,14 +445,14 @@ public:
 				uint32_t offset2 = offset1 + 130;
 				uint32_t offset3 = offset2 + 130;
 				uint32_t offset4 = offset3 + 130;
-				uint32_t offset5 = offset4 + 82;
-				uint32_t offset6 = 1185;
+				uint32_t offset5 = offset4 + 110;
+				uint32_t offset6 = 1200;
 				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 18, a(0x7111));
 				renderer->drawString("CPU", false, offset1, size, size, renderer->a(0xFCCF));
 				renderer->drawString("GPU", false, offset2, size, size, renderer->a(0xFCCF));
 				renderer->drawString("RAM", false, offset3, size, size, renderer->a(0xFCCF));
 				renderer->drawString("TEMP", false, offset4, size, size, renderer->a(0xFCCF));
-				renderer->drawString("FAN", false, offset5, size, size, renderer->a(0xFCCF));
+				renderer->drawString("PWR", false, offset5, size, size, renderer->a(0xFCCF));
 				renderer->drawString(CPU_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(GPU_Load_c, false, offset2+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(RAM_var_compressed_c, false, offset3+30, size, size, renderer->a(0xFFFF));
@@ -462,15 +467,15 @@ public:
 				uint32_t offset3 = offset2 + 130;
 				uint32_t offset4 = offset3 + 130;
 				uint32_t offset5 = offset4 + 130;
-				uint32_t offset6 = offset5 + 82;
-				uint32_t offset7 = 1185;
+				uint32_t offset6 = offset5 + 110;
+				uint32_t offset7 = 1200;
 				renderer->drawRect(0, 0, tsl::cfg::FramebufferWidth, 16, a(0x7111));
 				renderer->drawString("FPS", false, offset1, size, size, renderer->a(0xFCCF));
 				renderer->drawString("CPU", false, offset2, size, size, renderer->a(0xFCCF));
 				renderer->drawString("GPU", false, offset3, size, size, renderer->a(0xFCCF));
 				renderer->drawString("RAM", false, offset4, size, size, renderer->a(0xFCCF));
 				renderer->drawString("TEMP", false, offset5, size, size, renderer->a(0xFCCF));
-				renderer->drawString("FAN", false, offset6, size, size, renderer->a(0xFCCF));
+				renderer->drawString("PWR", false, offset6, size, size, renderer->a(0xFCCF));
 				renderer->drawString(FPS_var_compressed_c, false, offset1+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(CPU_compressed_c, false, offset2+30, size, size, renderer->a(0xFFFF));
 				renderer->drawString(GPU_Load_c, false, offset3+30, size, size, renderer->a(0xFFFF));
@@ -537,22 +542,26 @@ public:
 		percent = (RAM_Used_all_f / RAM_Total_all_f) * 100;
 		snprintf(RAM_all_c, sizeof RAM_all_c, "%.1f%s", percent, "%");
 		snprintf(RAM_var_compressed_c, sizeof RAM_var_compressed_c, "%s@%.1f", RAM_all_c, (float)RAM_Hz / 1000000);
+		
+		char remainingBatteryLife[6];
+		snprintf(remainingBatteryLife, sizeof remainingBatteryLife, "%d:%02d", batTimeEstimate / 60, batTimeEstimate % 60);
 
 		///Thermal
 		if (hosversionAtLeast(14,0,0))
 			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C/%2d\u00B0C/%2.1f\u00B0C", SOC_temperatureC, PCB_temperatureC, (float)skin_temperaturemiliC / 1000);
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C", SOC_temperatureC);
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2d\u00B0C(%2.0f%s)", SOC_temperatureC, Rotation_SpeedLevel_f * 100, "%");
 		else
 			//snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C/%2.1f\u00B0C/%2.1f\u00B0C", (float)SOC_temperatureC / 1000, (float)PCB_temperatureC / 1000, (float)skin_temperaturemiliC / 1000);
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C", (float)SOC_temperatureC / 1000);
-		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.0f%s", Rotation_SpeedLevel_f * 100, "%");
+			snprintf(skin_temperature_c, sizeof skin_temperature_c, "%2.1f\u00B0C(%2.0f%s)", (float)SOC_temperatureC / 1000, Rotation_SpeedLevel_f * 100, "%");
+		// Power
+		float PowerConsumption = ((batCurrentAvg / 1000) * (batVoltageAvg / 1000));
+		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%+.2fW", PowerConsumption);
 
 		///FPS
 		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
 
 		///Battery
-		float PowerConsumption = ((batCurrentAvg / 1000) * (batVoltageAvg / 1000));
-		snprintf(Battery_c, sizeof Battery_c, "%.1f%s (%+.2fW)", (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", PowerConsumption);
+		snprintf(Battery_c, sizeof Battery_c, "%.1f%s [%s]", (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
 		
 
 		//Debug
@@ -686,39 +695,52 @@ public:
 
 		if (_batteryChargeInfoFields.ChargerType)
 			snprintf(Battery_c, sizeof Battery_c,
+				"Battery Actual Capacity: %.0f mAh\n"
+				"Battery Designed Capacity: %.0f mAh\n"
 				"Battery Temperature: %.1f\u00B0C\n"
 				"Battery Raw Charge: %.1f%s\n"
 				"Battery Age: %.1f%s\n"
 				"Battery Voltage (5s AVG): %.0f mV\n"
 				"Battery Current Flow (5s AVG): %+.0f mA\n"
-				"Battery Power Flow (5s AVG): %+.3f W\n"
+				"Battery Power Flow (5s AVG): %+.3f W[%d:%02d]\n"
 				"Charger Type: %u\n"
 				"Charger Max Voltage: %u mV\n"
 				"Charger Max Current: %u mA",
+				actualFullBatCapacity,
+				designedFullBatCapacity,
 				(float)_batteryChargeInfoFields.BatteryTemperature / 1000,
 				(float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%",
 				(float)_batteryChargeInfoFields.BatteryAge / 1000, "%",
 				batVoltageAvg,
 				batCurrentAvg,
-				PowerConsumption,
+				PowerConsumption, 
+				batTimeEstimate / 60, 
+				batTimeEstimate % 60,
 				_batteryChargeInfoFields.ChargerType,
 				_batteryChargeInfoFields.ChargerVoltageLimit,
 				_batteryChargeInfoFields.ChargerCurrentLimit
 			);
 		else
 			snprintf(Battery_c, sizeof Battery_c,
+				"Battery Actual Capacity: %.0f mAh\n"
+				"Battery Designed Capacity: %.0f mAh\n"
 				"Battery Temperature: %.1f\u00B0C\n"
 				"Battery Raw Charge: %.1f%s\n"
 				"Battery Age: %.1f%s\n"
 				"Battery Voltage (5s AVG): %.0f mV\n"
 				"Battery Current Flow (5s AVG): %.0f mA\n"
-				"Battery Power Flow (5s AVG): %+.3f W",
+				"Battery Power Flow (5s AVG): %+.3f W\n"
+				"Battery Remaining Time: %d:%02d",
+				actualFullBatCapacity,
+				designedFullBatCapacity,
 				(float)_batteryChargeInfoFields.BatteryTemperature / 1000,
 				(float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%",
 				(float)_batteryChargeInfoFields.BatteryAge / 1000, "%",
 				batVoltageAvg,
 				batCurrentAvg,
-				PowerConsumption
+				PowerConsumption, 
+				batTimeEstimate / 60, 
+				batTimeEstimate % 60
 			);
 		
 	}
