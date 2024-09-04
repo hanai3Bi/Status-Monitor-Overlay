@@ -531,6 +531,60 @@ void Misc2(void*) {
 	}
 }
 
+void Misc3(void*) {
+	while (!threadexit) {
+		mutexLock(&mutex_Misc);
+
+		if (R_SUCCEEDED(sysclkCheck)) {
+			SysClkContext sysclkCTX;
+			if (R_SUCCEEDED(sysclkIpcGetCurrentContext(&sysclkCTX))) {
+				ramLoad[SysClkRamLoad_All] = sysclkCTX.ramLoad[SysClkRamLoad_All];
+				ramLoad[SysClkRamLoad_Cpu] = sysclkCTX.ramLoad[SysClkRamLoad_Cpu];
+			}
+		}
+		
+		//Temperatures
+		if (R_SUCCEEDED(tsCheck)) {
+			if (hosversionAtLeast(10,0,0)) {
+				TsSession ts_session;
+				Result rc = tsOpenSession(&ts_session, TsDeviceCode_LocationExternal);
+				if (R_SUCCEEDED(rc)) {
+					tsSessionGetTemperature(&ts_session, &SOC_temperatureF);
+					tsSessionClose(&ts_session);
+				}
+				rc = tsOpenSession(&ts_session, TsDeviceCode_LocationInternal);
+				if (R_SUCCEEDED(rc)) {
+					tsSessionGetTemperature(&ts_session, &PCB_temperatureF);
+					tsSessionClose(&ts_session);
+				}
+			}
+			else {
+				tsGetTemperatureMilliC(TsLocation_External, &SOC_temperatureC);
+				tsGetTemperatureMilliC(TsLocation_Internal, &PCB_temperatureC);
+			}
+		}
+		if (R_SUCCEEDED(tcCheck)) tcGetSkinTemperatureMilliC(&skin_temperaturemiliC);
+		
+		//Fan
+		if (R_SUCCEEDED(pwmCheck)) {
+			double temp = 0;
+			if (R_SUCCEEDED(pwmChannelSessionGetDutyCycle(&g_ICon, &temp))) {
+				temp *= 10;
+				temp = trunc(temp);
+				temp /= 10;
+				Rotation_Duty = 100.0 - temp;
+			}
+		}
+		
+		//GPU Load
+		if (R_SUCCEEDED(nvCheck)) nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &GPU_Load_u);
+		
+		// Interval
+		mutexUnlock(&mutex_Misc);
+		svcSleepThread(1'000'000'000);
+	}
+}
+
 //Check each core for idled ticks in intervals, they cannot read info about other core than they are assigned
 //In case of getting more than systemtickfrequency in idle, make it equal to systemtickfrequency to get 0% as output and nothing less
 //This is because making each loop also takes time, which is not considered because this will take also additional time
@@ -653,6 +707,36 @@ void EndFPSCounterThread() {
 	threadClose(&t0);
 	threadWaitForExit(&t6);
 	threadClose(&t6);
+	threadexit = false;
+	threadexit2 = false;
+}
+
+void StartInfoThread() {
+	threadCreate(&t1, CheckCore0, NULL, NULL, 0x1000, 0x10, 0);
+	threadCreate(&t2, CheckCore1, NULL, NULL, 0x1000, 0x10, 1);
+	threadCreate(&t3, CheckCore2, NULL, NULL, 0x1000, 0x10, 2);
+	threadCreate(&t4, CheckCore3, NULL, NULL, 0x1000, 0x10, 3);
+	threadCreate(&t7, Misc3, NULL, NULL, 0x1000, 0x3F, -2);
+	threadStart(&t1);
+	threadStart(&t2);
+	threadStart(&t3);
+	threadStart(&t4);
+	threadStart(&t7);
+}
+
+void EndInfoThread() {
+	threadexit = true;
+	threadexit2 = true;
+	threadWaitForExit(&t1);
+	threadWaitForExit(&t2);
+	threadWaitForExit(&t3);
+	threadWaitForExit(&t4);
+	threadWaitForExit(&t7);
+	threadClose(&t1);
+	threadClose(&t2);
+	threadClose(&t3);
+	threadClose(&t4);
+	threadClose(&t7);
 	threadexit = false;
 	threadexit2 = false;
 }
@@ -976,6 +1060,7 @@ struct FpsCounterSettings {
 };
 
 struct FpsGraphSettings {
+	bool showInfo;
 	uint8_t refreshRate;
 	uint16_t backgroundColor;
 	uint16_t fpsColor;
@@ -1326,6 +1411,7 @@ void GetConfigSettings(FpsCounterSettings* settings) {
 }
 
 void GetConfigSettings(FpsGraphSettings* settings) {
+	settings -> showInfo = false;
 	settings -> setPos = 0;
 	convertStrToRGBA4444("#1117", &(settings -> backgroundColor));
 	convertStrToRGBA4444("#4444", &(settings -> fpsColor));
@@ -1427,6 +1513,11 @@ void GetConfigSettings(FpsGraphSettings* settings) {
 		uint16_t temp = 0;
 		if (convertStrToRGBA4444(key, &temp))
 			settings -> perfectLineColor = temp;
+	}
+	if (parsedData["fps-graph"].find("show_info") != parsedData["fps-graph"].end()) {
+		key = parsedData["fps-graph"]["show_info"];
+		convertToUpper(key);
+		settings -> showInfo = !(key.compare("TRUE"));
 	}
 }
 
