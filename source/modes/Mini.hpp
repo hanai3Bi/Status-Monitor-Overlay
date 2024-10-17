@@ -271,7 +271,7 @@ public:
 		mutexLock(&mutex_Misc);
 		
 		char MINI_CPU_compressed_c[42] = "";
-		char MINI_CPU_volt_c[8] = "";	 
+		char MINI_CPU_volt_c[16] = "";	 
 		if (settings.realFrequencies && realCPU_Hz) {
 			snprintf(MINI_CPU_compressed_c, sizeof(MINI_CPU_compressed_c), 
 				"[%s,%s,%s,%s]@%hu.%hhu", 
@@ -285,10 +285,15 @@ public:
 				CPU_Hz / 1000000, (CPU_Hz / 100000) % 10);
 		}
 		if (settings.realVolts) { 
-			snprintf(MINI_CPU_volt_c, sizeof(MINI_CPU_volt_c), "%umV", realCPU_mV); 
+			if (isMariko) {
+				snprintf(MINI_CPU_volt_c, sizeof(MINI_CPU_volt_c), "%u.%1u mV", realCPU_mV/1000, (realCPU_mV/100)%10);
+			}
+			else {
+				snprintf(MINI_CPU_volt_c, sizeof(MINI_CPU_volt_c), "%u.%1u mV", realCPU_mV/1000, (realCPU_mV/10)%100);
+			} 
 		} 
 		char MINI_GPU_Load_c[14];
-		char MINI_GPU_volt_c[8] = ""; 
+		char MINI_GPU_volt_c[16] = ""; 
 		if (settings.realFrequencies && realGPU_Hz) {
 			snprintf(MINI_GPU_Load_c, sizeof(MINI_GPU_Load_c), 
 				"%hu.%hhu%%@%hu.%hhu", 
@@ -302,12 +307,17 @@ public:
 				GPU_Hz / 1000000, (GPU_Hz / 100000) % 10);
 		}
 		if (settings.realVolts) { 
-			snprintf(MINI_GPU_volt_c, sizeof(MINI_GPU_volt_c), "%umV", realGPU_mV); 
+			if (isMariko) {
+				snprintf(MINI_GPU_volt_c, sizeof(MINI_GPU_volt_c), "%u.%1u mV", realGPU_mV/1000, (realGPU_mV/100)%10);
+			}
+			else {
+				snprintf(MINI_GPU_volt_c, sizeof(MINI_GPU_volt_c), "%u.%1u mV", realGPU_mV/1000, (realGPU_mV/10)%100);
+			} 
 		} 
 		
 		///RAM
 		char MINI_RAM_var_compressed_c[19] = "";
-		char MINI_RAM_volt_c[16] = ""; 
+		char MINI_RAM_volt_c[32] = ""; 
 		if (R_FAILED(sysclkCheck) || !settings.showRAMLoad) {
 			float RAM_Total_application_f = (float)RAM_Total_application_u / 1024 / 1024;
 			float RAM_Total_applet_f = (float)RAM_Total_applet_u / 1024 / 1024;
@@ -347,7 +357,14 @@ public:
 			}
 		}
 		if (settings.realVolts) { 
-			snprintf(MINI_RAM_volt_c, sizeof(MINI_RAM_volt_c), "%u/%umV", realRAM_mV >> 16, realRAM_mV & 0xFFFF); 
+			uint32_t vdd2 = realRAM_mV / 10000;
+            uint32_t vddq = realRAM_mV % 10000;
+			if (isMariko) {
+				snprintf(MINI_RAM_volt_c, sizeof(MINI_RAM_volt_c), "%u.%1u/%u.%1u mV", vdd2/10, vdd2%10, vddq/10, vddq%10);
+			}
+			else {
+				snprintf(MINI_RAM_volt_c, sizeof(MINI_RAM_volt_c), "%u.%1u mV", vdd2/10, vdd2%10);
+			} 
 		} 
 		
 		///Thermal
@@ -357,9 +374,9 @@ public:
 			skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10);
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
 
-		char MINI_SOC_volt_c[8] = ""; 
+		char MINI_SOC_volt_c[16] = ""; 
 		if (settings.realVolts) { 
-			snprintf(MINI_SOC_volt_c, sizeof(MINI_SOC_volt_c), "%umV", realSOC_mV); 
+			snprintf(MINI_SOC_volt_c, sizeof(MINI_SOC_volt_c), "%u.%1u mV", realSOC_mV/1000, (realSOC_mV/100)%10);
 		} 
 
 		if (GameRunning && renderCalls_shared && resolutionShow) {
