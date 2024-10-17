@@ -536,24 +536,9 @@ void Misc3(void*) {
 		}
 		
 		//Temperatures
-		if (R_SUCCEEDED(tsCheck)) {
-			if (hosversionAtLeast(10,0,0)) {
-				TsSession ts_session;
-				Result rc = tsOpenSession(&ts_session, TsDeviceCode_LocationExternal);
-				if (R_SUCCEEDED(rc)) {
-					tsSessionGetTemperature(&ts_session, &SOC_temperatureF);
-					tsSessionClose(&ts_session);
-				}
-				rc = tsOpenSession(&ts_session, TsDeviceCode_LocationInternal);
-				if (R_SUCCEEDED(rc)) {
-					tsSessionGetTemperature(&ts_session, &PCB_temperatureF);
-					tsSessionClose(&ts_session);
-				}
-			}
-			else {
-				tsGetTemperatureMilliC(TsLocation_External, &SOC_temperatureC);
-				tsGetTemperatureMilliC(TsLocation_Internal, &PCB_temperatureC);
-			}
+		if (R_SUCCEEDED(i2cCheck)) {
+			Tmp451GetSocTemp(&SOC_temperatureF);
+			Tmp451GetPcbTemp(&PCB_temperatureF);
 		}
 		if (R_SUCCEEDED(tcCheck)) tcGetSkinTemperatureMilliC(&skin_temperaturemiliC);
 		
