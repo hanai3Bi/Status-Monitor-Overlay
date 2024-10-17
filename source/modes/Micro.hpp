@@ -420,33 +420,10 @@ public:
 		snprintf(Battery_c, sizeof Battery_c, "%.1f%s [%s]", (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
 
 		///Thermal
-		/* if (hosversionAtLeast(10,0,0)) {
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, 
-				"%2.1f/%2.1f/%hu.%hhu\u00B0C@%+.1fW[%s]", 
-				SOC_temperatureF, PCB_temperatureF, 
-				skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10, 
-				PowerConsumption, remainingBatteryLife);
-		}
-		else {
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, 
-				"%hu.%hhu/%hu.%hhu/%hu.%hhu\u00B0C@%+.1fW[%s]", 
-				SOC_temperatureC / 1000, (SOC_temperatureC / 100) % 10, 
-				PCB_temperatureC / 1000, (PCB_temperatureC / 100) % 10, 
-				skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10, 
-				PowerConsumption, remainingBatteryLife);
-		} */
-		if (hosversionAtLeast(10,0,0)) {
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, 
-				"%2.1f\u00B0C(%2.0f%%)", 
-				SOC_temperatureF,
-				Rotation_Duty);
-		}
-		else {
-			snprintf(skin_temperature_c, sizeof skin_temperature_c, 
-				"%hu.%hhu\u00B0C(%2.0f%%)", 
-				SOC_temperatureC / 1000, (SOC_temperatureC / 100) % 10, 
-				Rotation_Duty);
-		}
+		snprintf(skin_temperature_c, sizeof skin_temperature_c, 
+			"%2.1f\u00B0C(%2.0f%%)",
+			SOC_temperatureF,
+			Rotation_Duty);
 		mutexUnlock(&mutex_BatteryChecker);
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
 

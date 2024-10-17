@@ -4,8 +4,8 @@
 #include "Battery.hpp"
 #include "audsnoop.h"
 #include "Misc.hpp"
-#include "i2c.h"
 #include "max17050.h"
+#include "tmp451.h"
 #include "pwm.h"
 #include <numeric>
 #include <tesla.hpp>
@@ -52,7 +52,7 @@ MmuRequest nvjpgRequest;
 Result clkrstCheck = 1;
 Result nvCheck = 1;
 Result pcvCheck = 1;
-Result tsCheck = 1;
+Result i2cCheck = 1;
 Result pwmCheck = 1;
 Result tcCheck = 1;
 Result Hinted = 1;
@@ -97,8 +97,6 @@ uint8_t batteryTimeLeftRefreshRate = 60;
 //Temperatures
 float SOC_temperatureF = 0;
 float PCB_temperatureF = 0;
-int32_t SOC_temperatureC = 0;
-int32_t PCB_temperatureC = 0;
 int32_t skin_temperaturemiliC = 0;
 
 //CPU Usage
@@ -170,6 +168,15 @@ uint32_t realGPU_mV = 0;
 uint32_t realRAM_mV = 0; 
 uint32_t realSOC_mV = 0; 
 uint8_t refreshRate = 0;
+
+//Tweaks to nvInitialize so it will take less RAM
+#define NVDRV_TMEM_SIZE (8 * 0x1000)
+char nvdrv_tmem_data[NVDRV_TMEM_SIZE] alignas(0x1000);
+
+Result __nx_nv_create_tmem(TransferMemory *t, u32 *out_size, Permission perm) {
+    *out_size = NVDRV_TMEM_SIZE;
+    return tmemCreateFromMemory(t, nvdrv_tmem_data, NVDRV_TMEM_SIZE, perm);
+}
 
 int compare (const void* elem1, const void* elem2) {
 	if ((((resolutionCalls*)(elem1)) -> calls) > (((resolutionCalls*)(elem2)) -> calls)) return -1;
@@ -277,7 +284,7 @@ void CheckIfGameRunning(void*) {
 
 Mutex mutex_BatteryChecker = {0};
 void BatteryChecker(void*) {
-	if (R_FAILED(psmCheck)){
+	if (R_FAILED(psmCheck) || R_FAILED(i2cCheck)){
 		return;
 	}
 	uint16_t data = 0;
@@ -442,24 +449,9 @@ void Misc(void*) {
 		}
 		
 		//Temperatures
-		if (R_SUCCEEDED(tsCheck)) {
-			if (hosversionAtLeast(10,0,0)) {
-				TsSession ts_session;
-				Result rc = tsOpenSession(&ts_session, TsDeviceCode_LocationExternal);
-				if (R_SUCCEEDED(rc)) {
-					tsSessionGetTemperature(&ts_session, &SOC_temperatureF);
-					tsSessionClose(&ts_session);
-				}
-				rc = tsOpenSession(&ts_session, TsDeviceCode_LocationInternal);
-				if (R_SUCCEEDED(rc)) {
-					tsSessionGetTemperature(&ts_session, &PCB_temperatureF);
-					tsSessionClose(&ts_session);
-				}
-			}
-			else {
-				tsGetTemperatureMilliC(TsLocation_External, &SOC_temperatureC);
-				tsGetTemperatureMilliC(TsLocation_Internal, &PCB_temperatureC);
-			}
+		if (R_SUCCEEDED(i2cCheck)) {
+			Tmp451GetSocTemp(&SOC_temperatureF);
+			Tmp451GetPcbTemp(&PCB_temperatureF);
 		}
 		if (R_SUCCEEDED(tcCheck)) tcGetSkinTemperatureMilliC(&skin_temperaturemiliC);
 		
