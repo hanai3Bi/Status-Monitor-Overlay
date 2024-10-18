@@ -13,7 +13,7 @@ private:
 	char skin_temperature_c[32] = "";
 	char batteryCharge[10] = ""; // Declare the batteryCharge variable
 	char FPS_var_compressed_c[64] = "";
-	char Power_c[16];
+	//char Power_c[16];
 	char Battery_c[32];
 	char CPU_volt_c[16];
 	char GPU_volt_c[16];
@@ -200,14 +200,14 @@ public:
 					offset += 3*margin;
 					flags |= 1 << 3;
 				}
-				else if (!key.compare("PWR") && !(flags & 1 << 4)) {
+				/* else if (!key.compare("PWR") && !(flags & 1 << 4)) {
 					auto dimensions_s = renderer->drawString("PWR", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
 					offset += dimensions_s.first + margin;
 					auto dimensions_d = renderer->drawString(Power_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
 					offset += dimensions_d.first + margin;
 					offset += 3*margin;
 					flags |= 1 << 4;
-				}
+				} */
 				else if (!key.compare("FPS") && GameRunning && !(flags & 1 << 5)) {
 					auto dimensions_s = renderer->drawString("FPS", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
 					offset += dimensions_s.first + margin;
@@ -434,7 +434,7 @@ public:
 		}
 		else snprintf(remainingBatteryLife, sizeof remainingBatteryLife, "--:--");
 
-		snprintf(Battery_c, sizeof Battery_c, "%.1f%s [%s]", (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
+		snprintf(Battery_c, sizeof Battery_c, "%0.2fW | %.1f%s [%s]", PowerConsumption, (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
 
 		///Thermal
 		snprintf(skin_temperature_c, sizeof skin_temperature_c, 
@@ -448,7 +448,7 @@ public:
 			snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u.%u mV", realSOC_mV/1000, (realSOC_mV/100)%10);
 		}
 
-		snprintf(Power_c, sizeof Power_c, "%0.2fW", PowerConsumption);
+		//snprintf(Power_c, sizeof Power_c, "%0.2fW", PowerConsumption);
 		
 		///FPS
 		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
