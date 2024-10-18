@@ -326,10 +326,10 @@ public:
 		}
 		if (settings.realVolts) {
 			if (isMariko) {
-				snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u.%1u mV", realCPU_mV/1000, (realCPU_mV/100)%10);
+				snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u.%u mV", realCPU_mV/1000, (realCPU_mV/100)%10);
 			}
 			else {
-				snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u.%1u mV", realCPU_mV/1000, (realCPU_mV/10)%100);
+				snprintf(CPU_volt_c, sizeof(CPU_volt_c), "%u.%u mV", realCPU_mV/1000, (realCPU_mV/10)%100);
 			} 
 		}
 		
@@ -362,10 +362,10 @@ public:
 		}
 		if (settings.realVolts) {
 			if (isMariko) {
-				snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u.%1u mV", realGPU_mV/1000, (realGPU_mV/100)%10);
+				snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u.%u mV", realGPU_mV/1000, (realGPU_mV/100)%10);
 			}
 			else {
-				snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u.%1u mV", realGPU_mV/1000, (realGPU_mV/10)%100);
+				snprintf(GPU_volt_c, sizeof(GPU_volt_c), "%u.%u mV", realGPU_mV/1000, (realGPU_mV/10)%100);
 			}
 		}
 		
@@ -420,10 +420,10 @@ public:
 			uint32_t vdd2 = realRAM_mV / 10000;
             uint32_t vddq = realRAM_mV % 10000;
 			if (isMariko) {
-				snprintf(RAM_volt_c, sizeof(RAM_volt_c), "%u.%1u/%u.%1u mV", vdd2/10, vdd2%10, vddq/10, vddq%10);
+				snprintf(RAM_volt_c, sizeof(RAM_volt_c), "%u.%u/%u.%u mV", vdd2/10, vdd2%10, vddq/10, vddq%10);
 			}
 			else {
-				snprintf(RAM_volt_c, sizeof(RAM_volt_c), "%u.%1u mV", vdd2/10, vdd2%10);
+				snprintf(RAM_volt_c, sizeof(RAM_volt_c), "%u.%u mV", vdd2/10, vdd2%10);
 			} 
 		}
 		
@@ -445,7 +445,7 @@ public:
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
 
 		if (settings.realVolts) {
-			snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u.%1u mV", realSOC_mV/1000, (realSOC_mV/100)%10);
+			snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u.%u mV", realSOC_mV/1000, (realSOC_mV/100)%10);
 		}
 
 		snprintf(Power_c, sizeof Power_c, "%0.2fW", PowerConsumption);
