@@ -1,4 +1,5 @@
 #pragma once
+#define ALWAYS_INLINE inline __attribute__((always_inline))
 #include "SaltyNX.h"
 
 #include "Battery.hpp"
@@ -35,6 +36,7 @@ Thread t3;
 Thread t4;
 Thread t6;
 Thread t7;
+Thread t5;
 const uint64_t systemtickfrequency = 19200000;
 bool threadexit = false;
 bool threadexit2 = false;
@@ -129,8 +131,38 @@ double Rotation_Duty = 0;
 //GPU Usage
 FieldDescriptor fd = 0;
 uint32_t GPU_Load_u = 0;
+bool GPULoadPerFrame = true;
 
 //NX-FPS
+
+struct resolutionCalls {
+	uint16_t width;
+	uint16_t height;
+	uint16_t calls;
+};
+
+struct NxFpsSharedBlock {
+	uint32_t MAGIC;
+	uint8_t FPS;
+	float FPSavg;
+	bool pluginActive;
+	uint8_t FPSlocked;
+	uint8_t FPSmode;
+	uint8_t ZeroSync;
+	uint8_t patchApplied;
+	uint8_t API;
+	uint32_t FPSticks[10];
+	uint8_t Buffers;
+	uint8_t SetBuffers;
+	uint8_t ActiveBuffers;
+	uint8_t SetActiveBuffers;
+	uint8_t displaySync;
+	resolutionCalls renderCalls[8];
+	resolutionCalls viewportCalls[8];
+	bool forceOriginalRefreshRate;
+} NX_PACKED;
+
+NxFpsSharedBlock* NxFps = 0;
 bool GameRunning = false;
 bool check = true;
 bool SaltySD = false;
@@ -143,21 +175,7 @@ float FPSmin = 254;
 float FPSmax = 0; 
 SharedMemory _sharedmemory = {};
 bool SharedMemoryUsed = false;
-uint32_t* MAGIC_shared = 0;
-uint8_t* FPS_shared = 0;
-uint8_t* API_shared = 0;
-float* FPSavg_shared = 0;
-bool* pluginActive = 0;
-uint32_t* FPSticks_shared = 0;
 Handle remoteSharedMemory = 1;
-
-struct resolutionCalls {
-	uint16_t width;
-	uint16_t height;
-	uint16_t calls;
-};
-resolutionCalls* renderCalls_shared = 0;
-resolutionCalls* viewportCalls_shared = 0;
 
 //Read real freqs from sys-clk sysmodule
 uint32_t realCPU_Hz = 0;
@@ -211,16 +229,17 @@ void LoadSharedMemory() {
 	else FPS = 1234;
 }
 
-ptrdiff_t searchSharedMemoryBlock(uintptr_t base) {
+void searchSharedMemoryBlock(uintptr_t base) {
 	ptrdiff_t search_offset = 0;
 	while(search_offset < 0x1000) {
-		MAGIC_shared = (uint32_t*)(base + search_offset);
-		if (*MAGIC_shared == 0x465053) {
-			return search_offset;
+		NxFps = (NxFpsSharedBlock*)(base + search_offset);
+		if (NxFps -> MAGIC == 0x465053) {
+			return;
 		}
 		else search_offset += 4;
 	}
-	return -1;
+	NxFps = 0;
+	return;
 }
 
 //Check if SaltyNX is working
@@ -251,10 +270,10 @@ void CheckIfGameRunning(void*) {
 		if (!check && R_FAILED(pmdmntGetApplicationProcessId(&PID))) {
 			GameRunning = false;
 			if (SharedMemoryUsed) {
-				*MAGIC_shared = 0;
-				*pluginActive = false;
-				*FPS_shared = 0;
-				*FPSavg_shared = 0.0;
+				(NxFps -> MAGIC) = 0;
+				(NxFps -> pluginActive) = false;
+				(NxFps -> FPS) = 0;
+				(NxFps -> FPSavg) = 0.0;
 				FPS = 254;
 				FPSavg = 254.0;
 			}
@@ -262,18 +281,11 @@ void CheckIfGameRunning(void*) {
 		}
 		else if (!GameRunning && SharedMemoryUsed) {
 				uintptr_t base = (uintptr_t)shmemGetAddr(&_sharedmemory);
-				ptrdiff_t rel_offset = searchSharedMemoryBlock(base);
-				if (rel_offset > -1) {
-					FPS_shared = (uint8_t*)(base + rel_offset + 4);
-					FPSavg_shared = (float*)(base + rel_offset + 5);
-					pluginActive = (bool*)(base + rel_offset + 9);
-					API_shared = (uint8_t*)(base + rel_offset + 14);
-					FPSticks_shared = (uint32_t*)(base + rel_offset + 15);
-					renderCalls_shared = (resolutionCalls*)(base + rel_offset + 60);
-					viewportCalls_shared = (resolutionCalls*)(base + rel_offset + 60 + (sizeof(resolutionCalls) * 8));
-					*pluginActive = false;
+				searchSharedMemoryBlock(base);
+				if (NxFps) {
+					(NxFps -> pluginActive) = false;
 					svcSleepThread(100'000'000);
-					if (*pluginActive) {
+					if ((NxFps -> pluginActive)) {
 						GameRunning = true;
 						check = false;
 					}
@@ -409,6 +421,17 @@ void StartBatteryThread() {
 }
 
 Mutex mutex_Misc = {0};
+
+void gpuLoadThread(void*) {
+	if (!GPULoadPerFrame && R_SUCCEEDED(nvCheck)) while(!threadexit) {
+		u8 average = 5;
+		u32 temp = 0;
+		nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &temp);
+		GPU_Load_u = ((GPU_Load_u * (average-1)) + temp) / average;
+		svcSleepThread(16'666'000);
+	}
+}
+
 //Stuff that doesn't need multithreading
 void Misc(void*) {
 	while (!threadexit) {
@@ -480,13 +503,13 @@ void Misc(void*) {
 		}
 		
 		//GPU Load
-		if (R_SUCCEEDED(nvCheck)) nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &GPU_Load_u);
+		if (R_SUCCEEDED(nvCheck) && GPULoadPerFrame) nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &GPU_Load_u);
 		
 		//FPS
 		if (GameRunning) {
 			if (SharedMemoryUsed) {
-				FPS = *FPS_shared;
-				FPSavg = 19'200'000.f / (std::accumulate<uint32_t*, float>(FPSticks_shared, FPSticks_shared+10, 0) / 10);
+				FPS = (NxFps -> FPS);
+				FPSavg = 19'200'000.f / (std::accumulate<uint32_t*, float>(&(NxFps -> FPSticks[0]), &(NxFps -> FPSticks[10]), 0) / 10);
 				if (FPSavg > FPSmax)	FPSmax = FPSavg; 
 				if (FPSavg < FPSmin)	FPSmin = FPSavg; 
 			}
@@ -617,6 +640,7 @@ void StartThreads() {
 	threadCreate(&t2, CheckCore2, NULL, NULL, 0x1000, 0x10, 2);
 	threadCreate(&t3, CheckCore3, NULL, NULL, 0x1000, 0x10, 3);
 	threadCreate(&t4, Misc, NULL, NULL, 0x1000, 0x3F, -2);
+	threadCreate(&t5, gpuLoadThread, NULL, NULL, 0x1000, 0x3F, -2);
 	if (SaltySD) {
 		//Assign NX-FPS to default core
 		threadCreate(&t6, CheckIfGameRunning, NULL, NULL, 0x1000, 0x38, -2);
@@ -627,6 +651,7 @@ void StartThreads() {
 	threadStart(&t2);
 	threadStart(&t3);
 	threadStart(&t4);
+	threadStart(&t5);
 	if (SaltySD) {
 		//Start NX-FPS detection
 		threadStart(&t6);
@@ -643,6 +668,7 @@ void CloseThreads() {
 	threadWaitForExit(&t2);
 	threadWaitForExit(&t3);
 	threadWaitForExit(&t4);
+	threadWaitForExit(&t5);
 	threadWaitForExit(&t6);
 	threadWaitForExit(&t7);
 	threadClose(&t0);
@@ -650,6 +676,7 @@ void CloseThreads() {
 	threadClose(&t2);
 	threadClose(&t3);
 	threadClose(&t4);
+	threadClose(&t5);
 	threadClose(&t6);
 	threadClose(&t7);
 	threadexit = false;
@@ -661,8 +688,8 @@ void FPSCounter(void*) {
 	while (!threadexit) {
 		if (GameRunning) {
 			if (SharedMemoryUsed) {
-				FPS = *FPS_shared;
-				FPSavg = 19'200'000.f / (std::accumulate<uint32_t*, float>(FPSticks_shared, FPSticks_shared+10, 0) / 10);
+				FPS = (NxFps -> FPS);
+				FPSavg = 19'200'000.f / (std::accumulate<uint32_t*, float>(&(NxFps -> FPSticks[0]), &(NxFps -> FPSticks[10]), 0) / 10);
 			}
 		}
 		else FPSavg = 254;
@@ -846,7 +873,7 @@ uint64_t MapButtons(const std::string& buttonCombo) {
 	return comboBitmask;
 }
 
-static inline bool isKeyComboPressed(uint64_t keysHeld, uint64_t keysDown, uint64_t comboBitmask) {
+ALWAYS_INLINE bool isKeyComboPressed(uint64_t keysHeld, uint64_t keysDown, uint64_t comboBitmask) {
 	return (keysDown == comboBitmask) || (keysHeld == comboBitmask);
 }
 
@@ -914,6 +941,11 @@ void ParseIniFile() {
 				}
 				batteryTimeLeftRefreshRate = rate;
 			}
+			if (parsedData["status-monitor"].find("average_gpu_load") != parsedData["status-monitor"].end()) {
+				auto key = parsedData["status-monitor"]["average_gpu_load"];
+				convertToUpper(key);
+				GPULoadPerFrame = key.compare("TRUE");
+			}
 		}
 		
 	} else {
@@ -964,7 +996,7 @@ void ParseIniFile() {
 }
 
 
-bool isValidRGBA4Color(const std::string& hexColor) {
+ALWAYS_INLINE bool isValidRGBA4Color(const std::string& hexColor) {
     for (char c : hexColor) {
         if (!isxdigit(c)) {
             return false; // Must contain only hexadecimal digits (0-9, A-F, a-f)
@@ -1060,7 +1092,7 @@ struct ResolutionSettings {
 	int setPos;
 };
 
-void GetConfigSettings(MiniSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(MiniSettings* settings) {
 	settings -> realFrequencies = false;
 	settings -> realVolts = true;
 	settings -> handheldFontSize = 15;
@@ -1183,7 +1215,7 @@ void GetConfigSettings(MiniSettings* settings) {
 	}
 }
 
-void GetConfigSettings(MicroSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(MicroSettings* settings) {
 	settings -> realFrequencies = false;
 	settings -> realVolts = false;  
 	settings -> showFullCPU = false;  
@@ -1310,7 +1342,7 @@ void GetConfigSettings(MicroSettings* settings) {
 	}
 }
 
-void GetConfigSettings(FpsCounterSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(FpsCounterSettings* settings) {
 	settings -> handheldFontSize = 40;
 	settings -> dockedFontSize = 40;
 	convertStrToRGBA4444("#1117", &(settings -> backgroundColor));
@@ -1388,7 +1420,7 @@ void GetConfigSettings(FpsCounterSettings* settings) {
 	}
 }
 
-void GetConfigSettings(FpsGraphSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(FpsGraphSettings* settings) {
 	settings -> showInfo = false;
 	settings -> setPos = 0;
 	convertStrToRGBA4444("#1117", &(settings -> backgroundColor));
@@ -1499,7 +1531,7 @@ void GetConfigSettings(FpsGraphSettings* settings) {
 	}
 }
 
-void GetConfigSettings(FullSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(FullSettings* settings) {
 	settings -> setPosRight = false;
 	settings -> refreshRate = 1;
 	settings -> showRealFreqs = true;
@@ -1569,7 +1601,7 @@ void GetConfigSettings(FullSettings* settings) {
 	}
 }
 
-void GetConfigSettings(ResolutionSettings* settings) {
+ALWAYS_INLINE void GetConfigSettings(ResolutionSettings* settings) {
 	convertStrToRGBA4444("#1117", &(settings -> backgroundColor));
 	convertStrToRGBA4444("#FFFF", &(settings -> catColor));
 	convertStrToRGBA4444("#FFFF", &(settings -> textColor));
