@@ -10,6 +10,7 @@ private:
 	char CPU_Usage2[32] = "";
 	char CPU_Usage3[32] = "";
 	char CPU_UsageM[32] = "";
+	char soc_temperature_c[32] = "";
 	char skin_temperature_c[32] = "";
 	char batteryCharge[10] = ""; // Declare the batteryCharge variable
 	char FPS_var_compressed_c[64] = "";
@@ -189,6 +190,20 @@ public:
 				else if (!key.compare("SOC") && !(flags & 1 << 3)) {
 					auto dimensions_s = renderer->drawString("SOC", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
 					offset += dimensions_s.first + margin;
+					auto dimensions_d = renderer->drawString(soc_temperature_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
+					offset += dimensions_d.first + margin;
+					if (settings.realVolts) {
+						auto dimensions_e = renderer->drawString("|", false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
+						offset += dimensions_e.first + margin;
+						auto dimensions_v = renderer->drawString(SOC_volt_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
+						offset += dimensions_v.first + margin;
+					}
+					offset += 3*margin;
+					flags |= 1 << 3;
+				}
+				else if (!key.compare("TMP") && !(flags & 1 << 3)) {
+					auto dimensions_s = renderer->drawString("TMP", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
+					offset += dimensions_s.first + margin;
 					auto dimensions_d = renderer->drawString(skin_temperature_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
 					offset += dimensions_d.first + margin;
 					if (settings.realVolts) {
@@ -200,15 +215,7 @@ public:
 					offset += 3*margin;
 					flags |= 1 << 3;
 				}
-				/* else if (!key.compare("PWR") && !(flags & 1 << 4)) {
-					auto dimensions_s = renderer->drawString("PWR", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
-					offset += dimensions_s.first + margin;
-					auto dimensions_d = renderer->drawString(Power_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
-					offset += dimensions_d.first + margin;
-					offset += 3*margin;
-					flags |= 1 << 4;
-				} */
-				else if (!key.compare("FPS") && GameRunning && !(flags & 1 << 5)) {
+				else if (!key.compare("FPS") && GameRunning && !(flags & 1 << 4)) {
 					auto dimensions_s = renderer->drawString("FPS", false, offset, base_y+fontsize, fontsize, renderer->a(settings.catColor));
 					offset += dimensions_s.first + margin;
 					auto dimensions_d = renderer->drawString(FPS_var_compressed_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
@@ -216,7 +223,7 @@ public:
 					offset += 3*margin;
 					flags |= 1 << 5;
 				}
-				else if (!key.compare("BAT") && !(flags & 1 << 6)) {
+				else if (!key.compare("BAT") && !(flags & 1 << 5)) {
 					auto dimensions_d = renderer->drawString(Battery_c, false, 0, fontsize, fontsize, renderer->a(0x0000));
 					renderer->drawString(Battery_c, false, tsl::cfg::FramebufferWidth - dimensions_d.first, base_y+fontsize, fontsize, renderer->a(settings.textColor));
 					flags |= 1 << 6;
@@ -437,9 +444,14 @@ public:
 		snprintf(Battery_c, sizeof Battery_c, "%0.2fW | %.1f%s [%s]", PowerConsumption, (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
 
 		///Thermal
-		snprintf(skin_temperature_c, sizeof skin_temperature_c, 
+		snprintf(soc_temperature_c, sizeof skin_temperature_c, 
 			"%2.1f\u00B0C(%2.0f%%)",
 			SOC_temperatureF,
+			Rotation_Duty);
+		snprintf(skin_temperature_c, sizeof skin_temperature_c, 
+			"%2.1f/%2.1f/%hu.%hhu\u00B0C(%2.0f%%)", 
+			SOC_temperatureF, PCB_temperatureF, 
+			skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10, 
 			Rotation_Duty);
 		mutexUnlock(&mutex_BatteryChecker);
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
