@@ -2,7 +2,7 @@ class MicroOverlay : public tsl::Gui {
 private:
 	uint64_t mappedButtons = MapButtons(keyCombo); // map buttons
 	char GPU_Load_c[32] = "";
-	char Rotation_SpeedLevel_c[64] = "";
+	//char Rotation_SpeedLevel_c[64] = "";
 	char RAM_var_compressed_c[128] = "";
 	char CPU_compressed_c[160] = "";
 	char CPU_Usage0[32] = "";
@@ -12,16 +12,15 @@ private:
 	char CPU_UsageM[32] = "";
 	char soc_temperature_c[32] = "";
 	char skin_temperature_c[32] = "";
-	char batteryCharge[10] = ""; // Declare the batteryCharge variable
+	//char batteryCharge[10] = ""; // Declare the batteryCharge variable
 	char FPS_var_compressed_c[64] = "";
-	//char Power_c[16];
 	char Battery_c[32];
 	char CPU_volt_c[16];
 	char GPU_volt_c[16];
 	char RAM_volt_c[32];
 	char SOC_volt_c[16];
 
-	uint32_t margin = 4;
+	const uint32_t margin = 4;
 
 	// std::pair<u32, u32> CPU_dimensions;
 	// std::pair<u32, u32> GPU_dimensions;
@@ -221,12 +220,12 @@ public:
 					auto dimensions_d = renderer->drawString(FPS_var_compressed_c, false, offset, base_y+fontsize, fontsize, renderer->a(settings.textColor));
 					offset += dimensions_d.first + margin;
 					offset += 3*margin;
-					flags |= 1 << 5;
+					flags |= 1 << 4;
 				}
 				else if (!key.compare("BAT") && !(flags & 1 << 5)) {
 					auto dimensions_d = renderer->drawString(Battery_c, false, 0, fontsize, fontsize, renderer->a(0x0000));
 					renderer->drawString(Battery_c, false, tsl::cfg::FramebufferWidth - dimensions_d.first, base_y+fontsize, fontsize, renderer->a(settings.textColor));
-					flags |= 1 << 6;
+					flags |= 1 << 5;
 				}
 			}
 		});
@@ -442,6 +441,7 @@ public:
 		else snprintf(remainingBatteryLife, sizeof remainingBatteryLife, "--:--");
 
 		snprintf(Battery_c, sizeof Battery_c, "%0.2fW | %.1f%s [%s]", PowerConsumption, (float)_batteryChargeInfoFields.RawBatteryCharge / 1000, "%", remainingBatteryLife);
+		mutexUnlock(&mutex_BatteryChecker);
 
 		///Thermal
 		snprintf(soc_temperature_c, sizeof skin_temperature_c, 
@@ -453,23 +453,19 @@ public:
 			SOC_temperatureF, PCB_temperatureF, 
 			skin_temperaturemiliC / 1000, (skin_temperaturemiliC / 100) % 10, 
 			Rotation_Duty);
-		mutexUnlock(&mutex_BatteryChecker);
-		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
+		
+		//snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "%2.1f%%", Rotation_Duty);
 
 		if (settings.realVolts) {
 			snprintf(SOC_volt_c, sizeof(SOC_volt_c), "%u.%u mV", realSOC_mV/1000, (realSOC_mV/100)%10);
 		}
 
-		//snprintf(Power_c, sizeof Power_c, "%0.2fW", PowerConsumption);
-		
 		///FPS
 		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "%2.1f", FPSavg);
 
 		mutexUnlock(&mutex_Misc);
-		
-		
-		
 	}
+
 	virtual bool handleInput(uint64_t keysDown, uint64_t keysHeld, touchPosition touchInput, JoystickPosition leftJoyStick, JoystickPosition rightJoyStick) override {
 		if (isKeyComboPressed(keysHeld, keysDown, mappedButtons)) {
 			TeslaFPS = 60;
