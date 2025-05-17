@@ -239,7 +239,9 @@ public:
 					}
 				}
 				qsort(m_resolutionOutput, 8, sizeof(resolutionCalls), compare);
-				snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d or %dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height, m_resolutionOutput[1].width, m_resolutionOutput[1].height);
+				if (!m_resolutionOutput[1].width)
+					snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height);
+				else snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d || %dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height, m_resolutionOutput[1].width, m_resolutionOutput[1].height);
 			}
 		}
 		else if (!GameRunning && resolutionLookup != 0) {
