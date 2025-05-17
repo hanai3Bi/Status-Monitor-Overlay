@@ -95,6 +95,7 @@ int16_t batTimeEstimate = -1;
 float actualFullBatCapacity = 0;
 float designedFullBatCapacity = 0;
 bool batteryFiltered = false;
+bool fontCache = true;
 uint8_t batteryTimeLeftRefreshRate = 60;
 int32_t BatteryTimeCache[120];
 
