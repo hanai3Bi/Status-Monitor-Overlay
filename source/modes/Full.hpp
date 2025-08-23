@@ -18,6 +18,7 @@ private:
 	char FPS_var_compressed_c[64] = "";
 	char RAM_load_c[64] = "";
 	char Resolutions_c[64] = "";
+	char readSpeed_c[32] = "";
 
 	uint8_t COMMON_MARGIN = 20;
 	FullSettings settings;
@@ -32,13 +33,18 @@ public:
 		tsl::hlp::requestForeground(false);
 		TeslaFPS = settings.refreshRate;
 		systemtickfrequency_impl /= settings.refreshRate;
+		idletick0 = systemtickfrequency_impl;
+		idletick1 = systemtickfrequency_impl;
+		idletick2 = systemtickfrequency_impl;
+		idletick3 = systemtickfrequency_impl;
 		if (settings.setPosRight) {
 			tsl::gfx::Renderer::getRenderer().setLayerPos(1248, 0);
 		}
 		deactivateOriginalFooter = true;
 		formatButtonCombination(formattedKeyCombo);
 		message = "Hold " + formattedKeyCombo + " to Exit";
-        StartThreads();
+        StartThreads(NULL);
+		TeslaFPS = 60;
 	}
 	~FullOverlay() {
 		CloseThreads();
@@ -111,6 +117,7 @@ public:
 			renderer->drawString(FPS_var_compressed_c, false, COMMON_MARGIN, height_offset - 20, 20, renderer->a(0xFFFF));
 		
 			renderer->drawString(Resolutions_c, false, COMMON_MARGIN, height_offset, 20, renderer->a(0xFFFF));
+			renderer->drawString(readSpeed_c, false, COMMON_MARGIN, height_offset+20, 15, renderer->a(0xFFFF));
 			
 			renderer->drawString(message.c_str(), false, COMMON_MARGIN, 693, 23, renderer->a(0xFFFF));
 			
@@ -125,10 +132,10 @@ public:
 		//Make stuff ready to print
 		///CPU
 		snprintf(CPU_compressed_c, sizeof(CPU_compressed_c), "Load #0: %.2f%% / #1: %.2f%% / #2: %.2f%% / #3: %.2f%%", 
-			(idletick0 > systemtickfrequency_impl) ? 0.0f : (1.d - ((double)idletick0 / systemtickfrequency_impl)) * 100,
-			(idletick1 > systemtickfrequency_impl) ? 0.0f : (1.d - ((double)idletick1 / systemtickfrequency_impl)) * 100,
-			(idletick2 > systemtickfrequency_impl) ? 0.0f : (1.d - ((double)idletick2 / systemtickfrequency_impl)) * 100,
-			(idletick3 > systemtickfrequency_impl) ? 0.0f : (1.d - ((double)idletick3 / systemtickfrequency_impl)) * 100);
+			std::clamp(0.f, 100.f, (float)(1.d - ((double)idletick0 / systemtickfrequency_impl)) * 100),
+			std::clamp(0.f, 100.f, (float)(1.d - ((double)idletick1 / systemtickfrequency_impl)) * 100),
+			std::clamp(0.f, 100.f, (float)(1.d - ((double)idletick2 / systemtickfrequency_impl)) * 100),
+			std::clamp(0.f, 100.f, (float)(1.d - ((double)idletick3 / systemtickfrequency_impl)) * 100));
 
 		mutexLock(&mutex_Misc);
 		snprintf(CPU_Hz_c, sizeof(CPU_Hz_c), "Target Frequency: %u.%u MHz", CPU_Hz / 1000000, (CPU_Hz / 100000) % 10);
@@ -174,7 +181,8 @@ public:
 		snprintf(Rotation_SpeedLevel_c, sizeof Rotation_SpeedLevel_c, "Fan Rotation Level: %2.1f%%", Rotation_Duty);
 		
 		///FPS
-		snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "PFPS: %u  FPS: %2.1f", FPS, FPSavg);
+		if (settings.showFPS == true) 
+			snprintf(FPS_var_compressed_c, sizeof FPS_var_compressed_c, "PFPS: %3u; FPS: %.1f", FPS, FPSavg);
 
 		//Resolutions
 		if ((settings.showRES == true) && GameRunning && NxFps) {
@@ -240,8 +248,12 @@ public:
 				}
 				qsort(m_resolutionOutput, 8, sizeof(resolutionCalls), compare);
 				if (!m_resolutionOutput[1].width)
-					snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height);
-				else snprintf(Resolutions_c, sizeof(Resolutions_c), "%dx%d || %dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height, m_resolutionOutput[1].width, m_resolutionOutput[1].height);
+					snprintf(Resolutions_c, sizeof(Resolutions_c), "Resolutions: %dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height);
+				else snprintf(Resolutions_c, sizeof(Resolutions_c), "Resolutions: %dx%d || %dx%d", m_resolutionOutput[0].width, m_resolutionOutput[0].height, m_resolutionOutput[1].width, m_resolutionOutput[1].height);
+			}
+			if (settings.showRDSD == true && GameRunning && NxFps) {
+				if ((NxFps -> readSpeedPerSecond) != 0.f) snprintf(readSpeed_c, sizeof(readSpeed_c), "Read speed: %.2f MiB/s", (NxFps -> readSpeedPerSecond) / 1048576.f);
+				else snprintf(readSpeed_c, sizeof(readSpeed_c), "Read speed: n/d");
 			}
 		}
 		else if (!GameRunning && resolutionLookup != 0) {
@@ -267,6 +279,7 @@ public:
 			tsl::goBack();
 			return true;
 		}
+		else TeslaFPS = settings.refreshRate;
 		return false;
 	}
 };

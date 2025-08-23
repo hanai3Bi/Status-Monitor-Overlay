@@ -12,6 +12,7 @@ show_deltas=true
 show_target_freqs=true
 show_fps=true
 show_res=true
+show_read_speed=true
 [mini]
 refresh_rate=1
 layer_width_align=left
@@ -20,7 +21,7 @@ handheld_font_size=12
 docked_font_size=12
 real_freqs=true
 real_volts=true
-show=CPU+GPU+RAM+TEMP+DRAW+FAN+FPS+RES
+show=CPU+GPU+RAM+TEMP+FAN+DRAW+FPS+RES+READ
 replace_MB_with_RAM_load=true
 background_color=#1117
 cat_color=#ADFF
