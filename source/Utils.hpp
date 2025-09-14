@@ -193,6 +193,8 @@ uintptr_t FPSavgaddress = 0;
 uint64_t PID = 0;
 uint32_t FPS = 0xFE;
 float FPSavg = 254;
+float FPSavg_old = 254;
+bool useOldFPSavg = false;
 float FPSmin = 254; 
 float FPSmax = 0; 
 SharedMemory _sharedmemory = {};
@@ -440,11 +442,11 @@ void StartBatteryThread(bool skip = false) {
 Mutex mutex_Misc = {0};
 
 void gpuLoadThread(void*) {
+	#define gpu_samples_average 10
 	if (!GPULoadPerFrame && R_SUCCEEDED(nvCheck)) do {
-		u8 average = 5;
-		u32 temp = 0;
-		nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &temp);
-		GPU_Load_u = ((GPU_Load_u * (average-1)) + temp) / average;
+		u32 temp;
+		if (R_SUCCEEDED(nvIoctl(fd, NVGPU_GPU_IOCTL_PMU_GET_GPU_LOAD, &temp)))
+			GPU_Load_u = ((GPU_Load_u * (gpu_samples_average-1)) + temp) / gpu_samples_average;
 	} while(!leventWait(&threadexit, 16'666'000));
 }
 
@@ -528,7 +530,11 @@ void Misc(void*) {
 			if (SharedMemoryUsed) {
 				FPS = (NxFps -> FPS);
 				const size_t element_count = sizeof(NxFps -> FPSticks) / sizeof(NxFps -> FPSticks[0]);
-				FPSavg = (float)systemtickfrequency / (std::accumulate<uint32_t*, float>(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0) / element_count);
+				FPSavg_old = (float)systemtickfrequency / (std::accumulate<uint32_t*, float>(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0) / element_count);
+				float FPS_in = (float)FPS;
+				if (FPSavg_old >= (FPS_in-0.25) && FPSavg_old <= (FPS_in+0.25)) 
+					FPSavg = FPS_in;
+				else FPSavg = FPSavg_old;
 				lastFrameNumber = NxFps -> frameNumber;
 			}
 		}
@@ -736,7 +742,11 @@ void FPSCounter(void*) {
 			if (SharedMemoryUsed) {
 				FPS = (NxFps -> FPS);
 				const size_t element_count = sizeof(NxFps -> FPSticks) / sizeof(NxFps -> FPSticks[0]);
-				FPSavg = (float)systemtickfrequency / (std::accumulate<uint32_t*, float>(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0) / element_count);
+				FPSavg_old = (float)systemtickfrequency / (std::accumulate<uint32_t*, float>(&NxFps->FPSticks[0], &NxFps->FPSticks[element_count], 0) / element_count);
+				float FPS_in = (float)FPS;
+				if (FPSavg_old >= (FPS_in-0.25) && FPSavg_old <= (FPS_in+0.25)) 
+					FPSavg = FPS_in;
+				else FPSavg = FPSavg_old;
 				lastFrameNumber = NxFps -> frameNumber;
 			}
 		}
@@ -993,6 +1003,11 @@ void ParseIniFile() {
 				auto key = parsedData["status-monitor"]["average_gpu_load"];
 				convertToUpper(key);
 				GPULoadPerFrame = key.compare("TRUE");
+			}
+			if (parsedData["status-monitor"].find("use_old_fps_average") != parsedData["status-monitor"].end()) {
+				auto key = parsedData["status-monitor"]["use_old_fps_average"];
+				convertToUpper(key);
+				useOldFPSavg = !key.compare("TRUE");
 			}
 		}
 		
